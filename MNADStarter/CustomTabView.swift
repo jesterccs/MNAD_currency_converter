@@ -7,28 +7,30 @@
 
 import SwiftUI
 
-@MainActor class Prospect: ObservableObject {
-    @Published var selectedCurrency: Currencies
-    
-    init() {
-        selectedCurrency = .usd
-    }
-}
+//@MainActor class Prospect: ObservableObject {
+//    @Published var selectedCurrency: Currencies
+//    
+//    init() {
+//        selectedCurrency = .usd
+//    }
+//}
 
 struct CustomTabView: View {
     
-    @StateObject var prospect = Prospect()
+//    @StateObject var prospect = Prospect()
+    
+    @AppStorage("deafultPickerValue")  var  pickerValue :String = "USD"
     
     var body: some View {
         TabView{
-            HomeView().tabItem {
+            HomeView(defaulPickerValue: $pickerValue).tabItem {
                 Label("Home", systemImage: "house")
             }
             
-            SettingsView().tabItem {
+            SettingsView(defaulPickerValue: $pickerValue).tabItem {
                 Label("Settings", systemImage: "gearshape")
             }
-        }.environmentObject(prospect)
+        }/*.environmentObject(prospect)*/
     }
 }
 

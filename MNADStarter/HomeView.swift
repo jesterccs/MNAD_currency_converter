@@ -26,14 +26,15 @@ struct HomeView: View {
         "EUR": 334.92
     ]
     
-    @EnvironmentObject var prospect: Prospect
+//    @EnvironmentObject var prospect: Prospect
     
     @State private var textFieldValue1 = "" // SAMPLE
     @State private var textFieldValue2 = ""
-//    @State private var selectedCurrency: Currencies = .usd
+    @State private var selectedCurrency: String = "USD"
     @State private var toggle = false
     @State private var convertedLKRValue: String = ""
     @State private var convertedForeignValue: String = ""
+    @Binding var defaulPickerValue: String
     
     var body: some View {
         
@@ -50,13 +51,16 @@ struct HomeView: View {
                 .disabled(toggle)
                 .frame(width: UIScreen.screenWidth*0.7)
                 .onChange(of: textFieldValue1) { newValue in
-                    convert(newValue: newValue)
+                    if toggle == false {
+                        convert(newValue: newValue)
+                    }
+                    
                 }.border(.gray, width: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/)
                 
                 // Picker
-                Picker("", selection: $prospect.selectedCurrency) {
-                    ForEach(Currencies.allCases, id: \.self) { key in
-                        Text(key.rawValue)/*.tag(key.rawValue)*/
+                Picker("", selection: $selectedCurrency) {
+                    ForEach(Currencies.allCases, id: \.self) { currency in
+                        Text(currency.rawValue.uppercased()).tag(currency.rawValue)
                     }
                 }
             }
@@ -70,7 +74,10 @@ struct HomeView: View {
                 .foregroundColor(Color.black)
                 .disabled(!toggle)
                 .onChange(of: textFieldValue2) { newValue in
-                    reverseConvert(newValue: newValue)
+                    if toggle == true {
+                        reverseConvert(newValue: newValue)
+                    }
+                   
                 }
                 .border(.gray, width: 1)
                 Text("LKR")
@@ -97,6 +104,9 @@ struct HomeView: View {
                 Spacer()
             }
         }.padding()
+            .onAppear{
+                selectedCurrency = defaulPickerValue
+            }
     }
     
     
@@ -106,54 +116,28 @@ struct HomeView: View {
     
     // MARK: USE THESE FUNCTIONS WITHIN A SWIFTUI `onChange()` VIEW MODIFIER
     private func convert(newValue: String) {
-        var value: Double
-        if (toggle == false) {
-            switch $prospect.selectedCurrency.wrappedValue {
-            case Currencies.usd:
-                value = (Double(newValue) ?? 0.0)*(rates["USD"] ?? 0.0)
-                convertedLKRValue = String(format: "%.2f", value)
-            case Currencies.gbp:
-                value = (Double(newValue) ?? 0.0)*(rates["GBP"] ?? 0.0)
-                convertedLKRValue = String(format: "%.2f", value)
-            case Currencies.aud:
-                value = (Double(newValue) ?? 0.0)*(rates["AUD"] ?? 0.0)
-                convertedLKRValue = String(format: "%.2f", value)
-            case Currencies.cad:
-                value = (Double(newValue) ?? 0.0)*(rates["CAD"] ?? 0.0)
-                convertedLKRValue = String(format: "%.2f", value)
-            case Currencies.eur:
-                value = (Double(newValue) ?? 0.0)*(rates["EUR"] ?? 0.0)
-                convertedLKRValue = String(format: "%.2f", value)
-            }
+        guard let newValue = Double(newValue), let rate  = rates[selectedCurrency] else {
+            return
         }
+        
+        let convertedValue = newValue * rate
+        textFieldValue2 = String(convertedValue)
+        
     }
     
     private func reverseConvert(newValue: String) {
-        var value: Double
-        if (toggle == true){
-            switch $prospect.selectedCurrency.wrappedValue {
-            case Currencies.usd:
-                value = (Double(newValue) ?? 0.0) / (rates["USD"] ?? 0.0)
-                convertedForeignValue = String(format: "%.2f", value)
-            case .gbp:
-                value = (Double(newValue) ?? 0.0) / (rates["GBP"] ?? 0.0)
-                convertedForeignValue = String(format: "%.2f", value)
-            case .aud:
-                value = (Double(newValue) ?? 0.0) / (rates["AUD"] ?? 0.0)
-                convertedForeignValue = String(format: "%.2f", value)
-            case .cad:
-                value = (Double(newValue) ?? 0.0) / (rates["CAD"] ?? 0.0)
-                convertedForeignValue = String(format: "%.2f", value)
-            case .eur:
-                value = (Double(newValue) ?? 0.0) / (rates["EUR"] ?? 0.0)
-                convertedForeignValue = String(format: "%.2f", value)
-            }
+        guard let newValue = Double(newValue), let rate =
+                rates[selectedCurrency] else {
+            return
         }
+        
+        let convertedValue = newValue / rate
+        textFieldValue1 = String(convertedValue)
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        HomeView().environmentObject(Prospect())
+        HomeView(defaulPickerValue: .constant("USD"))/*.environmentObject(Prospect())*/
     }  
 }

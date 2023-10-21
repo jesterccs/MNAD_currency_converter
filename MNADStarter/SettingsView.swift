@@ -7,20 +7,20 @@
 
 import SwiftUI
 
-enum Currencies: String, CaseIterable {
+enum Currencies: String, CaseIterable, Identifiable {
     case usd = "USD"
     case gbp = "GBP"
     case aud = "AUD"
     case cad = "CAD"
     case eur = "EUR"
+    var id: Self { self }
 }
 
 
 struct SettingsView: View {
-    
-//    @State private var selectedCurrency: Currencies = .usd
-    @EnvironmentObject var prospect: Prospect
-    
+
+//    @EnvironmentObject var prospect: Prospect
+    @Binding var defaulPickerValue: String
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -28,21 +28,19 @@ struct SettingsView: View {
             
             Text("Currency").font(.title2).fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
             
-            Picker("", selection: $prospect.selectedCurrency) {
-                ForEach(Currencies.allCases, id: \.self) { key in
-                    Text(key.rawValue)/*.tag(key.rawValue)*/
+            Picker("", selection: $defaulPickerValue) {
+                ForEach(Currencies.allCases) { currency in
+                    Text(currency.rawValue).tag(currency.rawValue)
                 }
-            }.pickerStyle(.wheel)
-                .onChange (of: prospect.selectedCurrency)  { newValue in
-                    prospect.selectedCurrency = newValue
-                }
+            }
+            .pickerStyle(.wheel)
             
             Spacer()
             
             HStack {
                 Spacer()
                 Button(action: {
-                    prospect.selectedCurrency = .usd
+                    defaulPickerValue = "USD"
                 },label: {
                     Text("Reset Settings").foregroundColor(.red)
                         .frame(width: UIScreen.screenWidth*0.4, height: UIScreen.screenHeight*0.05)
@@ -55,6 +53,6 @@ struct SettingsView: View {
 
 struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
-        SettingsView().environmentObject(Prospect())
+        SettingsView(defaulPickerValue: .constant("USD"))/*.environmentObject(Prospect())*/
     }
 }
